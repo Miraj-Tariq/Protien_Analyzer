@@ -79,6 +79,7 @@ class BioPDBExtractor:
         for model in structure:
             for chain in model:
                 chain_id = chain.get_id()
+                print(f"Chain: {chain_id}")
                 if chain_id in self.accepted_chains:
                     # Initialize list for this chain if not already done.
                     if chain_id not in results:
@@ -102,6 +103,6 @@ current_file = Path(__file__).resolve()
 project_root = current_file.parents[2]
 
 # Construct the path to your input file
-input_file = project_root / "data" / "temp_chunks" / "1bey_002.pdb"
+input_file = project_root / "data" / "temp_chunks" / "1bey_001.pdb"
 
 print(BioPDBExtractor(input_file, accepted_chains=["H", "L"]).extract())
