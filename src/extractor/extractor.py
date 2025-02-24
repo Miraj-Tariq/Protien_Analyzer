@@ -57,13 +57,15 @@ class BioPDBExtractor:
             residue: residue.get_resname().strip()
         logger.info("BioPDBExtractor initialized for file: %s", self.file_path)
 
-    def extract(self) -> List[str]:
+    def extract(self) -> dict:
         """
         Parses the PDB file using Bio.PDB, filters chains based on accepted_chains,
-        extracts residue data using extraction_fn, and optionally deduplicates adjacent duplicates.
+        extracts residue data using extraction_fn, and optionally deduplicates adjacent duplicates
+        for each chain.
 
         Returns:
-            List[str]: The list of extracted values.
+            dict: A dictionary where keys are chain identifiers (e.g., "H", "L") and values are lists
+                  of extracted 3-letter amino acid codes.
         """
         parser = PDBParser(QUIET=True)
         try:
@@ -72,18 +74,26 @@ class BioPDBExtractor:
             logger.error("Error parsing PDB file: %s", e)
             raise e
 
-        results: List[str] = []
+        results = {}  # Dictionary: chain_id -> list of residue codes.
         # Iterate over all models, chains, and residues.
         for model in structure:
             for chain in model:
-                if chain.get_id() in self.accepted_chains:
+                chain_id = chain.get_id()
+                if chain_id in self.accepted_chains:
+                    # Initialize list for this chain if not already done.
+                    if chain_id not in results:
+                        results[chain_id] = []
                     for residue in chain:
                         data = self.extraction_fn(residue)
                         if data:
-                            results.append(data)
+                            results[chain_id].append(data)
+
+        # Optionally deduplicate each chain's list.
         if self.deduplicate:
-            results = deduplicate_adjacent(results)
-        logger.info("Extracted %d items from file %s using BioPDBExtractor.", len(results), self.file_path)
+            for chain_id in results:
+                results[chain_id] = deduplicate_adjacent(results[chain_id])
+
+        logger.info("Extracted data for %d chains from file %s using BioPDBExtractor.", len(results), self.file_path)
         return results
 
 

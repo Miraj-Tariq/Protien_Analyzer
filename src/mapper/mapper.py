@@ -3,13 +3,15 @@ from pathlib import Path
 from typing import Dict, List, Union
 from src.utils.logger import logger
 
+
 class Mapper:
     """
     A generic mapper for converting 3-letter amino acid codes to 1-letter codes.
 
     This class loads a mapping file (JSON) from a specified path and provides a method
-    to perform a one-to-one mapping on a list of 3-letter codes. If a residue code is not
-    found in the mapping, a warning is logged and a default value ("X") is used.
+    to perform a one-to-one mapping on a dictionary where keys are chain identifiers and values
+    are lists of 3-letter codes. If a residue code is not found in the mapping, a warning is logged
+    and a default value ("X") is used.
 
     Attributes:
         mapping_file (Path): Path to the mapping JSON file.
@@ -39,30 +41,33 @@ class Mapper:
             logger.error("Error loading mapping file: %s", e)
             raise e
 
-    def one_to_one_mapping(self, sequence: List[str]) -> List[str]:
+    def one_to_one_mapping(self, sequences: Dict[str, List[str]]) -> Dict[str, List[str]]:
         """
-        Converts a list of 3-letter amino acid codes to 1-letter codes.
+        Converts a dictionary of 3-letter amino acid codes to 1-letter codes.
 
-        For each code in the input sequence, the method looks up its corresponding 1-letter
-        code in the mapping dictionary. If the code is missing, a warning is logged and "X"
-        is used as a default.
+        For each chain in the input dictionary, each 3-letter code in its list is mapped to its
+        corresponding 1-letter code using the loaded mapping dictionary. If a code is missing, a warning
+        is logged and "X" is used as the default value.
 
         Args:
-            sequence (List[str]): List of 3-letter amino acid codes.
+            sequences (Dict[str, List[str]]): Dictionary with keys as chain identifiers and values as lists of
+                                              3-letter amino acid codes.
 
         Returns:
-            List[str]: List of 1-letter amino acid codes.
+            Dict[str, List[str]]: Dictionary with the same keys and values as lists of 1-letter amino acid codes.
         """
-        mapped_sequence: List[str] = []
-        for code in sequence:
-            one_letter = self.mapping.get(code)
-            if one_letter is None:
-                logger.warning("Mapping for residue '%s' not found. Using default 'X'.", code)
-                one_letter = "X"
-            mapped_sequence.append(one_letter)
-        logger.info("Mapped sequence: %s", mapped_sequence)
-        return mapped_sequence
-
+        mapped_dict: Dict[str, List[str]] = {}
+        for chain, codes in sequences.items():
+            mapped_seq: List[str] = []
+            for code in codes:
+                one_letter = self.mapping.get(code)
+                if one_letter is None:
+                    logger.warning("Mapping for residue '%s' not found. Using default 'X'.", code)
+                    one_letter = "X"
+                mapped_seq.append(one_letter)
+            mapped_dict[chain] = mapped_seq
+        logger.info("Mapped sequences: %s", mapped_dict)
+        return mapped_dict
 
 
 # TESTING
