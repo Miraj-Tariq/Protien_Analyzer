@@ -1,20 +1,20 @@
 import pytest
 from pathlib import Path
 from src.pipeline.orchestrator import PipelineOrchestrator
-from src.extractor.extractor import deduplicate_adjacent
 
-# Use a dummy orchestrator that only overrides the splitting and extraction stages,
-# but uses the parent's merge_extraction_results (which applies global deduplication).
 class DummyOrchestrator(PipelineOrchestrator):
     def split_file(self):
         # Return dummy chunk file paths.
         return [Path("dummy_chunk_001.pdb"), Path("dummy_chunk_002.pdb")]
 
     def extract_chunks(self, chunk_files):
-        # Simulate extraction results from two chunks:
+        # Simulate extraction results:
         # First chunk returns {"H": ["MET"], "L": ["ALA"]}
         # Second chunk returns {"H": ["MET"], "L": ["MET"]}
         return [{"H": ["MET"], "L": ["ALA"]}, {"H": ["MET"], "L": ["MET"]}]
+
+    # We use the parent's merge_extraction_results, which applies global deduplication.
+    # With deduplication enabled, merged["H"] should be ["MET"] and merged["L"] should be ["ALA", "MET"].
 
 @pytest.fixture
 def dummy_config(tmp_path):
@@ -38,10 +38,8 @@ def test_pipeline_orchestrator(dummy_config, tmp_path):
     orchestrator = DummyOrchestrator(dummy_config)
     extraction_results = orchestrator.extract_chunks([])
     merged = orchestrator.merge_extraction_results(extraction_results)
-    # Debug print to inspect merged result.
-    print("Merged extraction:", merged)
-    # Expected:
-    # For chain "H": first chunk yields ["MET"], second yields ["MET"], which should deduplicate to ["MET"]
-    # For chain "L": first chunk yields ["ALA"], second yields ["MET"], so merged becomes ["ALA", "MET"]
+    # Expected merged result:
+    # For chain "H": ["MET"] because ["MET", "MET"] deduplicates to ["MET"]
+    # For chain "L": ["ALA", "MET"]
     expected = {"H": ["MET"], "L": ["ALA", "MET"]}
     assert merged == expected
