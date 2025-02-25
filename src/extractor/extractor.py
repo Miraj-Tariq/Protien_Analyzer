@@ -8,7 +8,7 @@ logger = get_logger(__name__)
 
 def deduplicate_adjacent(entries: List[str]) -> List[str]:
     """
-    Removes adjacent duplicate entries from a list, after stripping whitespace.
+    Removes adjacent duplicate entries from a list.
 
     Args:
         entries (List[str]): Input list of strings.
@@ -18,12 +18,12 @@ def deduplicate_adjacent(entries: List[str]) -> List[str]:
     """
     if not entries:
         return []
-    # Initialize with the stripped first entry.
-    deduped = [entries[0].strip()]
-    for entry in entries[1:]:
-        entry_stripped = entry.strip()
-        if entry_stripped != deduped[-1]:
-            deduped.append(entry_stripped)
+    deduped = []
+    prev = None
+    for entry in entries:
+        if entry != prev:
+            deduped.append(entry)
+        prev = entry
     return deduped
 
 

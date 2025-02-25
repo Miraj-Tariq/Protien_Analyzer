@@ -3,18 +3,18 @@ from pathlib import Path
 from src.pipeline.orchestrator import PipelineOrchestrator
 
 class DummyOrchestrator(PipelineOrchestrator):
+    # Override methods to simulate minimal processing.
     def split_file(self):
         # Return dummy chunk file paths.
         return [Path("dummy_chunk_001.pdb"), Path("dummy_chunk_002.pdb")]
 
     def extract_chunks(self, chunk_files):
-        # Simulate extraction results:
+        # Simulate extraction results from two chunks:
         # First chunk returns {"H": ["MET"], "L": ["ALA"]}
         # Second chunk returns {"H": ["MET"], "L": ["MET"]}
         return [{"H": ["MET"], "L": ["ALA"]}, {"H": ["MET"], "L": ["MET"]}]
 
-    # We use the parent's merge_extraction_results, which applies global deduplication.
-    # With deduplication enabled, merged["H"] should be ["MET"] and merged["L"] should be ["ALA", "MET"].
+    # Use the parent's merge_extraction_results which applies global deduplication.
 
 @pytest.fixture
 def dummy_config(tmp_path):
@@ -34,12 +34,11 @@ def dummy_config(tmp_path):
     (tmp_path / "dummy_input.pdb").write_text("DUMMY PDB CONTENT")
     return config
 
-def test_pipeline_orchestrator(dummy_config, tmp_path):
+def test_pipeline_orchestrator(dummy_config, capsys):
     orchestrator = DummyOrchestrator(dummy_config)
     extraction_results = orchestrator.extract_chunks([])
     merged = orchestrator.merge_extraction_results(extraction_results)
-    # Expected merged result:
-    # For chain "H": ["MET"] because ["MET", "MET"] deduplicates to ["MET"]
-    # For chain "L": ["ALA", "MET"]
+    print("Merged extraction:", merged)
+    capsys.readouterr()  # Clear captured output.
     expected = {"H": ["MET"], "L": ["ALA", "MET"]}
     assert merged == expected
