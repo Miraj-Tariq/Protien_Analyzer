@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Dict, Any, Tuple, Union
 
 import torch
-import esm  # Make sure the esm package is installed
+import esm
 from src.utils.logger import logger
 
 
@@ -34,8 +34,11 @@ class ESMIntegration:
             Tuple[torch.nn.Module, esm.Alphabet]: The loaded model and its alphabet.
         """
         try:
-            # For this use case, we use the ESM-1b model.
+            # Using the ESM-1b model.
             model, alphabet = esm.pretrained.esm1b_t33_650M_UR50S()
+            # Optionally, you could trace the model for faster inference:
+            # example_input = torch.zeros((1, 10), dtype=torch.long).to(self.device)
+            # model = torch.jit.trace(model, example_input)
             logger.info("Loaded ESM-1b model successfully.")
             return model, alphabet
         except Exception as e:
@@ -64,15 +67,12 @@ class ESMIntegration:
             # Prepare batch for tokenization as list of tuples: (chain_id, sequence)
             batch = []
             for chain, info in extracted.items():
-                sequence = info.get("sequence", "")
+                # Convert sequence to uppercase to avoid tokenization issues.
+                sequence = info.get("sequence", "").upper()
                 batch.append((chain, sequence))
-            print(batch)
-            # Get the batch converter from the alphabet.
             batch_converter = self.alphabet.get_batch_converter()
             batch_labels, batch_strs, batch_tokens = batch_converter(batch)
-            # Move tokens to the correct device.
             batch_tokens = batch_tokens.to(self.device)
-            # Create a dict mapping chain IDs to their tokens.
             token_dict = {label: tokens for label, tokens in zip(batch_labels, batch_tokens)}
             logger.info("Preprocessed input from %s into tokenized sequences.", json_file)
             return token_dict
@@ -94,13 +94,11 @@ class ESMIntegration:
         outputs = {}
         start_time = time.time()
         try:
-            with torch.no_grad():
-                # Process each chain individually.
+            with torch.no_grad(), torch.amp.autocast(device_type=self.device.type):
                 for chain, tokens in tokenized_inputs.items():
-                    # Ensure tokens is 2D; if it's 1D, add a batch dimension.
+                    # Ensure tokens are 2D; if 1D, add a batch dimension.
                     if tokens.ndim == 1:
                         tokens = tokens.unsqueeze(0)
-                    # Run model inference.
                     output = self.model(tokens, repr_layers=[33], return_contacts=False)
                     outputs[chain] = output["representations"][33]
             prediction_time = time.time() - start_time
@@ -111,16 +109,16 @@ class ESMIntegration:
             raise e
 
     def post_process(
-            self,
-            output_tensors: Dict[str, torch.Tensor],
-            tokenized_inputs: Dict[str, torch.Tensor],
-            prediction_time: float
+        self,
+        output_tensors: Dict[str, torch.Tensor],
+        tokenized_inputs: Dict[str, torch.Tensor],
+        prediction_time: float
     ) -> Dict[str, Any]:
         """
         Post-processes model outputs to generate final predictions and collate metadata.
 
-        For demonstration, this function derives a dummy predicted sequence by simply taking the argmax
-        along the feature dimension (as a placeholder for a real prediction method).
+        For demonstration, this function derives a dummy predicted sequence by taking the argmax
+        along the feature dimension of the first token as a placeholder.
 
         Args:
             output_tensors (Dict[str, torch.Tensor]): Dictionary of output tensors from the model.
@@ -136,16 +134,10 @@ class ESMIntegration:
         """
         predictions = {}
         for chain, tensor in output_tensors.items():
-            # For demonstration, we simulate a predicted sequence by taking the argmax of the tensor along the feature dimension.
-            # In a real application, further processing would be required.
-            # Here, we simply convert the first row of the tensor to a list of integers.
             pred_indices = tensor[0].argmax(dim=-1).tolist()
-            # Convert indices to a string representation (dummy prediction)
-            # In practice, you would use the alphabet to convert indices back to characters.
-            predicted_seq = "".join([str(idx % 26 + 65) for idx in pred_indices])  # Map to A-Z cyclically
+            predicted_seq = "".join([str(idx % 26 + 65) for idx in pred_indices])
             predictions[chain] = predicted_seq
 
-        # For original token info, we record the token shapes.
         original_tokens = {chain: tokens.shape for chain, tokens in tokenized_inputs.items()}
         model_output_info = {chain: tensor.shape for chain, tensor in output_tensors.items()}
 
@@ -159,18 +151,14 @@ class ESMIntegration:
         return metadata
 
 
-# TESTING
-current_file = Path(__file__).resolve()
-project_root = current_file.parents[2]
+# For direct module testing (optional)
+if __name__ == "__main__":
+    current_file = Path(__file__).resolve()
+    project_root = current_file.parents[2]
+    output_file = project_root / "data" / "output" / "1bey_output.json"
 
-# Construct the path to your input file
-output_file = project_root / "data" / "output" / "1bey_output.json"
-
-esm_ml = ESMIntegration()
-
-tokenized_output = esm_ml.preprocess_input(output_file)
-output_tensors_dict, prediction_time = esm_ml.run_inference(tokenized_output)
-
-print(esm_ml.post_process(output_tensors_dict, tokenized_output, prediction_time))
-
-
+    esm_ml = ESMIntegration()
+    tokenized_output = esm_ml.preprocess_input(output_file)
+    output_tensors_dict, prediction_time = esm_ml.run_inference(tokenized_output)
+    metadata = esm_ml.post_process(output_tensors_dict, tokenized_output, prediction_time)
+    print(metadata)
