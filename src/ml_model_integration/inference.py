@@ -1,11 +1,16 @@
 import json
+import os
 import time
 from pathlib import Path
 from typing import Dict, Any, Tuple, Union
 
 import torch
 import esm
-from src.utils.logger import logger
+
+from src.utils.file_storage import store_data
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class ESMIntegration:
@@ -67,12 +72,21 @@ class ESMIntegration:
             # Prepare batch for tokenization as list of tuples: (chain_id, sequence)
             batch = []
             for chain, info in extracted.items():
-                # Convert sequence to uppercase to avoid tokenization issues.
-                sequence = info.get("sequence", "").upper()
+                if isinstance(info, dict):
+                    # If info is a dict (with a "sequence" key)
+                    sequence = info.get("sequence", "").upper()
+                elif isinstance(info, list):
+                    # If info is a list, join the list items to form a single sequence string.
+                    sequence = "".join(info).upper()
+                else:
+                    sequence = ""
                 batch.append((chain, sequence))
+            # Get the batch converter from the alphabet.
             batch_converter = self.alphabet.get_batch_converter()
             batch_labels, batch_strs, batch_tokens = batch_converter(batch)
+            # Move tokens to the correct device.
             batch_tokens = batch_tokens.to(self.device)
+            # Create a dict mapping chain IDs to their tokens.
             token_dict = {label: tokens for label, tokens in zip(batch_labels, batch_tokens)}
             logger.info("Preprocessed input from %s into tokenized sequences.", json_file)
             return token_dict
@@ -150,15 +164,30 @@ class ESMIntegration:
         logger.info("Post-processing completed. Metadata: %s", metadata)
         return metadata
 
+    def store_metadata(self, metadata: Dict[str, Any], output_dir: Union[str, Path]) -> Path:
+        """
+        Stores the metadata as a JSON file in the 'src/data/output/inferenced/' directory.
 
-# For direct module testing (optional)
-if __name__ == "__main__":
-    current_file = Path(__file__).resolve()
-    project_root = current_file.parents[2]
-    output_file = project_root / "data" / "output" / "1bey_output.json"
+        Args:
+            metadata (Dict[str, Any]): The metadata to store.
+            filename (str): Optional filename; if not provided, a timestamped name is used.
 
-    esm_ml = ESMIntegration()
-    tokenized_output = esm_ml.preprocess_input(output_file)
-    output_tensors_dict, prediction_time = esm_ml.run_inference(tokenized_output)
-    metadata = esm_ml.post_process(output_tensors_dict, tokenized_output, prediction_time)
-    print(metadata)
+        Returns:
+            Path: The path to the stored metadata file.
+        """
+        output_file_name = f"{os.environ.get('file_base_name')}_inferenced_output.json"
+        output_path = output_dir / output_file_name
+        return store_data(metadata, output_path, format="json")
+
+
+# TESTING
+# # For direct module testing (optional)
+# if __name__ == "__main__":
+#     current_file = Path(__file__).resolve()
+#     project_root = current_file.parents[2]
+#     output_file = project_root / "data" / "output" / "1bey_output.json"
+#
+#     esm_ml = ESMIntegration()
+#     tokenized_output = esm_ml.preprocess_input(output_file)
+#     output_tensors_dict, prediction_time = esm_ml.run_inference(tokenized_output)
+#     metadata = esm_ml.post_process(output_tensors_dict, tokenized_output, prediction_time)

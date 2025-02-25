@@ -3,7 +3,9 @@ from typing import Any, Callable, List, Optional
 
 from Bio.PDB import PDBParser
 
-from src.utils.logger import logger
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 class PDBValidationError(Exception):
     """
@@ -120,10 +122,10 @@ class PDBValidator:
 
 
 # TESTING
-current_file = Path(__file__).resolve()
-project_root = current_file.parents[2]
-
-# Construct the path to your input file
-input_file = project_root / "data" / "temp_chunks" / "1bey_test.pdb"
-
-PDBValidator(input_file).validate()
+# current_file = Path(__file__).resolve()
+# project_root = current_file.parents[2]
+#
+# # Construct the path to your input file
+# input_file = project_root / "data" / "temp_chunks" / "1bey_test.pdb"
+#
+# PDBValidator(input_file).validate()

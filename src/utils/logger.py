@@ -1,3 +1,4 @@
+import logging
 import logging.config
 
 LOGGING_CONFIG = {
@@ -5,7 +6,8 @@ LOGGING_CONFIG = {
     "disable_existing_loggers": False,
     "formatters": {
         "standard": {
-            "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+            # Use %(module)s to display the module (filename) where the log is coming from.
+            "format": "%(asctime)s [%(levelname)s] %(module)s: %(message)s"
         },
     },
     "handlers": {
@@ -13,11 +15,17 @@ LOGGING_CONFIG = {
             "class": "logging.StreamHandler",
             "formatter": "standard",
             "level": "INFO",
-        }
+        },
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": "app.log",
+            "formatter": "standard",
+            "level": "DEBUG",
+        },
     },
     "loggers": {
         "": {  # root logger
-            "handlers": ["console"],
+            "handlers": ["console", "file"],
             "level": "DEBUG",
             "propagate": True,
         },
@@ -25,4 +33,7 @@ LOGGING_CONFIG = {
 }
 
 logging.config.dictConfig(LOGGING_CONFIG)
-logger = logging.getLogger(__name__)
+
+def get_logger(name: str) -> logging.Logger:
+    """Returns a logger with the given name."""
+    return logging.getLogger(name)

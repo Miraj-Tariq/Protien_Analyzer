@@ -1,7 +1,9 @@
 import concurrent.futures
 from pathlib import Path
 from typing import Callable, Dict, Any, Union
-from src.utils.logger import logger
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 class WorkerPool:
     """

@@ -1,40 +1,57 @@
-import json
-import time
+import os
 from pathlib import Path
 from typing import Dict, Any, List
 
+from functools import partial
 import torch
 from src.file_splitter.splitter import FileSplitter
 from src.extractor.extractor import BioPDBExtractor
 from src.mapper.mapper import Mapper
 from src.output_generator.output import OutputFileGenerator
-from src.ai_ml_integration.inference import ESMIntegration
+from src.ml_model_integration.inference import ESMIntegration
 from src.worker_pool.pool import WorkerPool
-from src.utils.logger import logger
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
+# Module-level helper function (now picklable) for extracting from a chunk.
+def extract_from_chunk_helper(chunk_file_path: str, accepted_chains: List[str], deduplicate: bool) -> Dict[str, List[str]]:
+    from src.extractor.extractor import BioPDBExtractor  # local import to avoid circular dependency
+    extractor = BioPDBExtractor(
+        file_path=chunk_file_path,
+        accepted_chains=accepted_chains,
+        deduplicate=deduplicate
+    )
+    return extractor.extract()
 
 class PipelineOrchestrator:
     """
     Orchestrates the complete Protein Analyzer data pipeline.
 
     The pipeline proceeds in the following stages:
-      1. File Splitting: Split the input PDB file into chunks.
+      1. File Splitting: Split the input PDB file into chunk files.
       2. Extraction: Process each chunk using BioPDBExtractor to extract chain-specific residue codes.
          Parallel processing is applied via the WorkerPool.
-      3. Merge Extractions: Combine extraction results from all chunks.
+      3. Merge Extractions: Combine results from all chunks into one dictionary.
       4. Mapping: Convert 3-letter codes to 1-letter codes using Mapper.
-      5. Output Generation: Generate a JSON file with metadata.
-      6. ML Integration: Preprocess the JSON output and run model inference.
+      5. Output Generation: Write a JSON file with processing metadata and extracted chain data.
+      6. ML Integration: Use the ML integration module to run inference on the generated JSON file.
     """
     def __init__(self, config: Dict[str, Any]) -> None:
         self.config = config
         self.input_file = Path(config["input_file"])
         self.temp_chunks_dir = Path(config["temp_chunks_dir"])
         self.output_dir = Path(config["output_dir"])
+        self.inference_output_dir = Path(config["inference_output_dir"])
         self.mapping_file = Path(config["mapping_file"])
         self.checkpoints: Dict[str, Any] = {}
-        # Ensure directories exist.
+        # Ensure necessary directories exist.
         self.temp_chunks_dir.mkdir(parents=True, exist_ok=True)
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.inference_output_dir.mkdir(parents=True, exist_ok=True)
+
+        os.environ["file_base_name"] = self.input_file.stem
+
         logger.info("PipelineOrchestrator initialized with config: %s", self.config)
 
     def run_pipeline(self) -> Dict[str, Any]:
@@ -72,6 +89,7 @@ class PipelineOrchestrator:
         tokenized_inputs = esm_integration.preprocess_input(output_json_path)
         output_tensors, pred_time = esm_integration.run_inference(tokenized_inputs)
         ml_metadata = esm_integration.post_process(output_tensors, tokenized_inputs, pred_time)
+        esm_integration.store_metadata(ml_metadata, self.inference_output_dir)
         self.checkpoints["ml_integration"] = "ML integration completed."
         logger.info("ML integration completed. Final metadata: %s", ml_metadata)
 
@@ -87,24 +105,23 @@ class PipelineOrchestrator:
         return chunk_files
 
     def extract_chunks(self, chunk_files: List[Path]) -> List[Dict[str, List[str]]]:
-        def extract_from_chunk(chunk_file_path: str) -> Dict[str, List[str]]:
-            extractor = BioPDBExtractor(
-                file_path=chunk_file_path,
-                accepted_chains=self.config["accepted_chains"],
-                deduplicate=self.config.get("deduplicate", True)
-            )
-            return extractor.extract()
-
+        # Use functools.partial to bind accepted_chains and deduplicate parameters.
+        processing_function = partial(
+            extract_from_chunk_helper,
+            accepted_chains=self.config["accepted_chains"],
+            deduplicate=self.config.get("deduplicate", True)
+        )
         worker_pool = WorkerPool(
             max_workers=self.config.get("max_workers", 4),
             max_retries=self.config.get("max_retries", 3)
         )
+        # Base address: assume chunks are named as [input_file_stem]_{chunk_no:03d}.pdb in temp_chunks_dir.
         base_address = str(self.temp_chunks_dir / self.input_file.stem)
         total_files = len(chunk_files)
         extraction_results = worker_pool.process_chunks(
             base_address=base_address,
             total_files=total_files,
-            processing_function=extract_from_chunk
+            processing_function=processing_function
         )
         successful_results = []
         for file_name, result in extraction_results.items():

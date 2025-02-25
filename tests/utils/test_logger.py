@@ -1,7 +1,11 @@
 import re
 import logging
-from src.utils.logger import logger
+from src.utils.logger import get_logger
 
+logger = get_logger(__name__)
+
+def test_logger_name():
+    assert logger.name == __name__
 
 def test_logger_instance():
     """

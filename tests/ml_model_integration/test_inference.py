@@ -3,7 +3,8 @@ import time
 import torch
 import pytest
 from pathlib import Path
-from src.ai_ml_integration.inference import ESMIntegration
+from src.ml_model_integration.inference import ESMIntegration
+from src.utils.file_storage import store_data
 
 @pytest.fixture
 def sample_output_json(tmp_path: Path) -> Path:
@@ -35,6 +36,15 @@ def esm_integration_instance():
     # Note: In a real unit test, you might want to mock heavy model calls.
     instance = ESMIntegration()
     return instance
+
+@pytest.fixture
+def sample_ml_metadata(tmp_path: Path) -> dict:
+    return {
+        "prediction_time": 0.123,
+        "original_tokens": {"H": (1, 50), "L": (1, 60)},
+        "model_output": {"H": (1, 50, 1280), "L": (1, 60, 1280)},
+        "predicted_sequence": {"H": "ABC", "L": "DEF"}
+    }
 
 def test_preprocess_input(sample_output_json: Path, esm_integration_instance):
     """
@@ -82,3 +92,12 @@ def test_post_process(esm_integration_instance, sample_output_json: Path):
     for key in ["H", "L"]:
         assert isinstance(metadata["original_tokens"][key], tuple)
         assert isinstance(metadata["model_output"][key], tuple)
+
+def test_store_metadata(tmp_path: Path, sample_ml_metadata: dict):
+    # Simulate storing metadata using store_data utility.
+    output_file = tmp_path / "inferenced" / "test_metadata.json"
+    stored_path = store_data(sample_ml_metadata, output_file, format="json")
+    assert stored_path.exists()
+    with stored_path.open("r") as f:
+        loaded = json.load(f)
+    assert loaded == sample_ml_metadata

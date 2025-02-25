@@ -1,7 +1,9 @@
 import logging
 from pathlib import Path
 from typing import List
-from src.utils.logger import logger
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 current_file = Path(__file__).resolve()
 project_root = current_file.parents[2]
@@ -84,8 +86,8 @@ class FileSplitter:
 
 
 # TESTING
-# Construct the path to your input file
-input_file = project_root / "data" / "input" / "1bey.pdb"
-
-fs = FileSplitter(input_file)
-fs.split()
+# # Construct the path to your input file
+# input_file = project_root / "data" / "input" / "1bey.pdb"
+#
+# fs = FileSplitter(input_file)
+# fs.split()
