@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  protein_analyzer:
+    build: .
+    container_name: protein_analyzer
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    env_file:
+      - .env

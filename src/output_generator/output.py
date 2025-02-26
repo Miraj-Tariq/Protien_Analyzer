@@ -35,7 +35,7 @@ class OutputFileGenerator:
             Dict[str, Any]: Transformed output data.
         """
         output_data = {
-            "input_filename": input_filename,
+            "input_filename": str(input_filename),
             "processed_at": datetime.now().isoformat() + "Z",
             "extracted_chains": extracted_chains
         }

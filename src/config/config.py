@@ -2,13 +2,11 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from a .env file
-load_dotenv()  # It will automatically load from .env if present
+load_dotenv()
 
-# Determine the project root based on this file's location.
+# Determine the project root based on this file’s location.
 BASE_PATH = Path(__file__).resolve().parents[2]
 
-# Build the configuration dictionary using environment variables.
 CONFIG = {
     "input_file": BASE_PATH / os.getenv("INPUT_FILE", "data/input/1bey.pdb"),
     "temp_chunks_dir": BASE_PATH / os.getenv("TEMP_CHUNKS_DIR", "data/temp_chunks"),
