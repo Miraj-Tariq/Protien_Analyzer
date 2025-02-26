@@ -6,6 +6,8 @@ services:
     container_name: protein_analyzer
     volumes:
       - .:/app
+      - ./data/input:/app/data/input   # for input files
+      - ./data/output:/app/data/output   # for output files (extracted and inferred)
     environment:
       - PYTHONUNBUFFERED=1
     env_file:
