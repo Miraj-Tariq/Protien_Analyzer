@@ -1,12 +1,12 @@
-import logging
 from pathlib import Path
 from typing import List
+
+from src.config.config import CONFIG
+
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-current_file = Path(__file__).resolve()
-project_root = current_file.parents[2]
 
 class FileSplitter:
     """
@@ -18,7 +18,9 @@ class FileSplitter:
         output_dir (Path): Directory where chunk files will be stored.
     """
 
-    def __init__(self, input_file: str, output_dir: str = project_root / "data" / "temp_chunks") -> None:
+    def __init__(self,
+                 input_file: str = CONFIG["input_file"],
+                 output_dir: str = CONFIG["temp_chunks_dir"]) -> None:
         self.input_file = Path(input_file)
         self.output_dir = Path(output_dir)
 
@@ -83,11 +85,3 @@ class FileSplitter:
             outfile.writelines(lines)
 
         return output_file_path
-
-
-# TESTING
-# # Construct the path to your input file
-# input_file = project_root / "data" / "input" / "1bey.pdb"
-#
-# fs = FileSplitter(input_file)
-# fs.split()

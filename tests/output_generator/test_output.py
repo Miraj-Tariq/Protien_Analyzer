@@ -22,7 +22,7 @@ def sample_input_filename() -> str:
 
 def test_generate_output_file(temp_output_dir: Path, sample_extracted_chains: dict, sample_input_filename: str):
     generator = OutputFileGenerator(output_dir=temp_output_dir)
-    output_path = generator.generate_output_file(sample_input_filename, sample_extracted_chains)
+    output_path = generator.generate_output_file(sample_extracted_chains, sample_input_filename)
     assert output_path.exists()
     with output_path.open("r") as f:
         data = json.load(f)
@@ -32,6 +32,6 @@ def test_generate_output_file(temp_output_dir: Path, sample_extracted_chains: di
 
 def test_output_file_naming(temp_output_dir: Path, sample_extracted_chains: dict, sample_input_filename: str):
     generator = OutputFileGenerator(output_dir=temp_output_dir)
-    output_path = generator.generate_output_file(sample_input_filename, sample_extracted_chains)
+    output_path = generator.generate_output_file(sample_extracted_chains, sample_input_filename)
     expected_filename = "protein_ABC_output.json"
     assert output_path.name == expected_filename

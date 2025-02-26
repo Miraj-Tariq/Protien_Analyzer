@@ -18,12 +18,14 @@ def deduplicate_adjacent(entries: List[str]) -> List[str]:
     """
     if not entries:
         return []
+
     deduped = []
     prev = None
     for entry in entries:
         if entry != prev:
             deduped.append(entry)
         prev = entry
+
     return deduped
 
 
@@ -52,8 +54,9 @@ class BioPDBExtractor:
     ) -> None:
         self.file_path = Path(file_path)
         if not self.file_path.exists():
-            logger.error("File %s does not exist.", self.file_path)
+            logger.error(f"File %s does not exist.")
             raise FileNotFoundError(f"File {self.file_path} does not exist.")
+
         self.accepted_chains = accepted_chains
         self.deduplicate = deduplicate
         # Default extraction function: extract the 3-letter residue name.
@@ -78,13 +81,13 @@ class BioPDBExtractor:
             logger.error("Error parsing PDB file: %s", e)
             raise e
 
-        results = {}  # Dictionary: chain_id -> list of residue codes.
+        results = {}
+
         # Iterate over all models, chains, and residues.
         for model in structure:
             for chain in model:
                 chain_id = chain.get_id()
                 if chain_id in self.accepted_chains:
-                    # Initialize list for this chain if not already done.
                     if chain_id not in results:
                         results[chain_id] = []
                     for residue in chain:
@@ -92,20 +95,10 @@ class BioPDBExtractor:
                         if data:
                             results[chain_id].append(data)
 
-        # Optionally deduplicate each chain's list.
+        # OPTIONAL: deduplicate each chain's list.
         if self.deduplicate:
             for chain_id in results:
                 results[chain_id] = deduplicate_adjacent(results[chain_id])
 
         logger.info("Extracted data for %d chains from file %s using BioPDBExtractor.", len(results), self.file_path)
         return results
-
-
-# TESTING
-# current_file = Path(__file__).resolve()
-# project_root = current_file.parents[2]
-#
-# # Construct the path to your input file
-# input_file = project_root / "data" / "temp_chunks" / "1bey_001.pdb"
-#
-# print(BioPDBExtractor(input_file, accepted_chains=["H", "L"]).extract())

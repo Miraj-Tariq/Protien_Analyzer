@@ -25,6 +25,7 @@ class Mapper:
         if not self.mapping_file.exists():
             logger.error("Mapping file %s does not exist.", self.mapping_file)
             raise FileNotFoundError(f"Mapping file {self.mapping_file} does not exist.")
+
         self.mapping: Dict[str, str] = self._load_mapping()
 
     def _load_mapping(self) -> Dict[str, str]:
@@ -38,6 +39,7 @@ class Mapper:
             with self.mapping_file.open("r") as f:
                 mapping_data = json.load(f)
             logger.info("Loaded mapping from %s", self.mapping_file)
+
             return mapping_data
         except Exception as e:
             logger.error("Error loading mapping file: %s", e)
@@ -68,18 +70,6 @@ class Mapper:
                     one_letter = "X"
                 mapped_seq.append(one_letter)
             mapped_dict[chain] = mapped_seq
+
         logger.info("Mapped sequences: %s", mapped_dict)
         return mapped_dict
-
-
-# TESTING
-# current_file = Path(__file__).resolve()
-# project_root = current_file.parents[2]
-#
-# # Construct the path to your input file
-# input_file = project_root / "data" / "amino_acids_mapping.json"
-#
-# print(Mapper(input_file).one_to_one_mapping(
-# {'H': ['GLN', 'VAL', 'GLN', 'LEU', 'GLN', 'GLU', 'SER', 'GLY', 'PRO', 'GLY', 'LEU', 'VAL', 'ARG', 'PRO', 'SER', 'GLN', 'THR', 'LEU', 'SER', 'LEU', 'THR', 'CYS', 'THR', 'VAL', 'SER', 'GLY', 'PHE', 'THR', 'PHE', 'THR', 'ASP', 'PHE', 'TYR', 'MET', 'ASN', 'TRP', 'VAL', 'ARG', 'GLN', 'PRO', 'GLY', 'ARG', 'GLY', 'LEU', 'GLU', 'TRP', 'ILE', 'GLY', 'PHE', 'ILE', 'ARG', 'ASP', 'LYS', 'ALA', 'LYS', 'GLY', 'TYR', 'THR', 'GLU', 'TYR', 'ASN', 'PRO', 'SER', 'VAL', 'LYS', 'GLY', 'ARG', 'VAL', 'THR', 'MET', 'LEU', 'VAL', 'ASP', 'THR', 'SER', 'LYS', 'ASN', 'GLN', 'PHE', 'SER', 'LEU', 'ARG', 'LEU', 'SER', 'VAL', 'THR', 'ALA', 'ASP', 'THR', 'ALA', 'VAL', 'TYR', 'CYS', 'ALA', 'ARG', 'GLU', 'GLY', 'HIS', 'THR', 'ALA', 'PRO', 'PHE', 'ASP', 'TYR', 'TRP', 'GLY', 'GLN', 'GLY', 'SER', 'LEU', 'VAL', 'THR', 'VAL', 'SER', 'ALA', 'SER', 'THR', 'LYS', 'GLY', 'PRO', 'SER', 'VAL', 'PHE', 'PRO', 'LEU', 'ALA', 'PRO', 'ALA', 'LEU', 'GLY', 'CYS', 'LEU', 'VAL', 'LYS', 'ASP', 'TYR', 'PHE', 'PRO', 'GLU', 'PRO', 'VAL', 'THR', 'VAL', 'SER', 'TRP', 'ASN', 'SER', 'GLY', 'ALA', 'LEU', 'THR', 'SER', 'GLY', 'VAL', 'HIS', 'THR', 'PHE', 'PRO', 'ALA', 'VAL', 'LEU', 'GLN', 'SER', 'GLY', 'LEU', 'TYR', 'SER', 'LEU', 'SER', 'VAL', 'THR', 'VAL', 'PRO', 'SER', 'LEU', 'GLY', 'THR', 'GLN', 'THR', 'TYR', 'ILE', 'CYS', 'ASN', 'VAL', 'ASN', 'HIS', 'LYS', 'PRO', 'SER', 'ASN', 'THR', 'LYS', 'VAL', 'ASP', 'LYS', 'VAL'],
-#  'L': ['ASP', 'ILE', 'GLN', 'MET', 'THR', 'GLN', 'SER', 'PRO', 'SER', 'LEU', 'SER', 'ALA', 'SER', 'VAL', 'GLY', 'ASP', 'ARG', 'VAL', 'THR', 'ILE', 'THR', 'CYS', 'LYS', 'ALA', 'SER', 'GLN', 'ASN', 'ILE', 'ASP', 'LYS', 'TYR', 'LEU', 'ASN', 'TRP', 'TYR', 'GLN', 'LYS', 'PRO', 'GLY', 'LYS', 'ALA', 'PRO', 'LYS', 'LEU', 'ILE', 'TYR', 'ASN', 'THR', 'ASN', 'LEU', 'GLN', 'THR', 'GLY', 'VAL', 'PRO', 'SER', 'ARG', 'PHE', 'SER', 'GLY', 'SER', 'GLY', 'SER', 'GLY', 'THR', 'ASP', 'PHE', 'THR', 'PHE', 'THR', 'ILE', 'SER', 'LEU', 'GLN', 'PRO', 'GLU', 'ASP', 'ILE', 'ALA', 'THR', 'TYR', 'CYS', 'LEU', 'GLN', 'HIS', 'ILE', 'SER', 'ARG', 'PRO', 'ARG', 'THR', 'PHE', 'GLY', 'GLN', 'GLY', 'THR', 'LYS', 'VAL', 'GLU', 'ILE', 'LYS', 'ARG', 'THR', 'VAL', 'ALA', 'PRO', 'SER', 'VAL', 'PHE', 'ILE', 'PHE', 'PRO', 'SER', 'ASP', 'GLU', 'GLN', 'LEU', 'LYS', 'SER', 'GLY', 'THR', 'ALA', 'SER', 'VAL', 'CYS', 'LEU', 'ASN', 'PHE', 'TYR', 'PRO', 'ARG', 'GLU', 'ALA', 'LYS', 'VAL', 'GLN', 'TRP', 'LYS', 'VAL', 'ASP', 'ASN', 'ALA', 'LEU', 'GLN', 'SER', 'GLY', 'ASN', 'SER', 'GLN', 'GLU', 'SER', 'VAL', 'THR', 'GLU', 'GLN', 'ASP', 'SER', 'LYS', 'ASP', 'SER', 'THR', 'TYR', 'SER', 'LEU', 'SER', 'THR', 'LEU', 'THR', 'LEU', 'SER', 'LYS', 'ALA', 'ASP', 'TYR', 'GLU', 'LYS', 'HIS', 'LYS', 'VAL', 'TYR', 'ALA', 'CYS', 'GLU', 'VAL', 'THR', 'HIS', 'GLN', 'GLY', 'LEU', 'SER', 'PRO', 'VAL', 'THR', 'LYS', 'SER', 'PHE', 'ASN', 'ARG', 'GLY', 'GLU', 'CYS']}
-# ))

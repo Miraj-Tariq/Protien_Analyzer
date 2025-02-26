@@ -31,6 +31,7 @@ class PDBValidator:
         if not self.chunk_file.exists():
             logger.error("Chunk file %s does not exist.", self.chunk_file)
             raise FileNotFoundError(f"Chunk file {self.chunk_file} does not exist.")
+
         self.structure: Optional[Any] = None
 
     def load_data(self) -> Any:
@@ -46,6 +47,7 @@ class PDBValidator:
             raise PDBValidationError(
                 f"Failed to parse chunk file: {self.chunk_file}. Error: {str(e)}"
             )
+
         return self.structure
 
     def validate(self, validators: Optional[List[Callable[[Any], None]]] = None) -> None:
@@ -119,13 +121,3 @@ class PDBValidator:
                                 f"Validation failed: Expected '{expected_value}' in column {column_index} not found."
                             )
         logger.info("Validation passed for column value check: %s", expected_value)
-
-
-# TESTING
-# current_file = Path(__file__).resolve()
-# project_root = current_file.parents[2]
-#
-# # Construct the path to your input file
-# input_file = project_root / "data" / "temp_chunks" / "1bey_test.pdb"
-#
-# PDBValidator(input_file).validate()

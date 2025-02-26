@@ -6,7 +6,6 @@ LOGGING_CONFIG = {
     "disable_existing_loggers": False,
     "formatters": {
         "standard": {
-            # Use %(module)s to display the module (filename) where the log is coming from.
             "format": "%(asctime)s [%(levelname)s] %(module)s: %(message)s"
         },
     },
@@ -24,7 +23,7 @@ LOGGING_CONFIG = {
         },
     },
     "loggers": {
-        "": {  # root logger
+        "": {
             "handlers": ["console", "file"],
             "level": "DEBUG",
             "propagate": True,
@@ -35,5 +34,4 @@ LOGGING_CONFIG = {
 logging.config.dictConfig(LOGGING_CONFIG)
 
 def get_logger(name: str) -> logging.Logger:
-    """Returns a logger with the given name."""
     return logging.getLogger(name)

@@ -1,6 +1,6 @@
 import concurrent.futures
 from pathlib import Path
-from typing import Callable, Dict, Any, Union
+from typing import Callable, Dict, Any
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)

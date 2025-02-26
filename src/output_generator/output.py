@@ -1,9 +1,10 @@
-import json
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Union
-from src.utils.logger import get_logger
+
+from src.config.config import CONFIG
 from src.utils.file_storage import store_data
+from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -15,14 +16,14 @@ class OutputFileGenerator:
     This module transforms the input data into the required output format and delegates
     the storage to the generic file storage utility.
     """
-
-    def __init__(self, output_dir: Union[str, Path] = "data/output") -> None:
+    def __init__(self, output_dir: Union[str, Path] = CONFIG["output_dir"]) -> None:
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         logger.info("Output directory set to: %s", self.output_dir.resolve())
 
-    def transform_data(self, input_filename: str, extracted_chains: Dict[str, Dict[str, Union[str, int]]]) -> Dict[
-        str, Any]:
+    def transform_data(self,
+                       input_filename: str,
+                       extracted_chains: Dict[str, Dict[str, Union[str, int]]]) -> Dict[str, Any]:
         """
         Transforms input data into the desired output schema.
 
@@ -35,13 +36,14 @@ class OutputFileGenerator:
         """
         output_data = {
             "input_filename": input_filename,
-            "processed_at": datetime.utcnow().isoformat() + "Z",
+            "processed_at": datetime.now().isoformat() + "Z",
             "extracted_chains": extracted_chains
         }
+
         return output_data
 
-    def generate_output_file(self, input_filename: str,
-                             extracted_chains: Dict[str, Dict[str, Union[str, int]]]) -> Path:
+    def generate_output_file(self, extracted_chains: Dict[str, Dict[str, Union[str, int]]],
+                             input_filename: str = CONFIG["input_file"]) -> Path:
         """
         Transforms data and stores it as a JSON file using the file storage utility.
 
