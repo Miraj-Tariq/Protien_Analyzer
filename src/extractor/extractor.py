@@ -54,7 +54,7 @@ class BioPDBExtractor:
     ) -> None:
         self.file_path = Path(file_path)
         if not self.file_path.exists():
-            logger.error(f"File %s does not exist.")
+            logger.error(f"File {file_path} does not exist.")
             raise FileNotFoundError(f"File {self.file_path} does not exist.")
 
         self.accepted_chains = accepted_chains
@@ -62,7 +62,7 @@ class BioPDBExtractor:
         # Default extraction function: extract the 3-letter residue name.
         self.extraction_fn = extraction_fn if extraction_fn is not None else lambda \
             residue: residue.get_resname().strip()
-        logger.info("BioPDBExtractor initialized for file: %s", self.file_path)
+        logger.info(f"BioPDBExtractor initialized for file: {self.file_path}")
 
     def extract(self) -> dict:
         """
@@ -78,7 +78,7 @@ class BioPDBExtractor:
         try:
             structure = parser.get_structure(self.file_path.stem, str(self.file_path))
         except Exception as e:
-            logger.error("Error parsing PDB file: %s", e)
+            logger.error(f"Error parsing PDB file: {e}")
             raise e
 
         results = {}
@@ -100,5 +100,5 @@ class BioPDBExtractor:
             for chain_id in results:
                 results[chain_id] = deduplicate_adjacent(results[chain_id])
 
-        logger.info("Extracted data for %d chains from file %s using BioPDBExtractor.", len(results), self.file_path)
+        logger.info(f"Extracted data for {len(results)} chains from file {self.file_path} using BioPDBExtractor.")
         return results

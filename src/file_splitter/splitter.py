@@ -25,12 +25,11 @@ class FileSplitter:
         self.output_dir = Path(output_dir)
 
         if not self.input_file.exists():
-            logger.error("Input file %s does not exist.", self.input_file)
+            logger.error(f"Input file {self.input_file} does not exist.")
             raise FileNotFoundError(f"Input file {self.input_file} does not exist.")
 
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        logger.info("Initialized FileSplitter with input file %s and output directory %s",
-                    self.input_file, self.output_dir)
+        logger.info(f"Initialized FileSplitter with input file {self.input_file} and output directory {self.output_dir}")
 
     def split(self) -> List[Path]:
         """
@@ -43,7 +42,7 @@ class FileSplitter:
         chunk_lines: List[str] = []
         chunk_number = 1
 
-        logger.info("Starting protein-based file splitting for %s", self.input_file)
+        logger.info(f"Starting protein-based file splitting for {self.input_file}")
         with self.input_file.open("r") as infile:
             for line in infile:
                 chunk_lines.append(line)
@@ -51,8 +50,7 @@ class FileSplitter:
                 if line.strip().startswith("TER"):
                     output_file = self._write_chunk(chunk_lines, chunk_number)
                     output_files.append(output_file)
-                    logger.info("Wrote chunk %d with %d lines to %s",
-                                chunk_number, len(chunk_lines), output_file)
+                    logger.info(f"Wrote chunk {chunk_number} with {len(chunk_lines)} lines to {output_file}")
                     chunk_number += 1
                     chunk_lines = []
 
@@ -60,10 +58,9 @@ class FileSplitter:
             if chunk_lines:
                 output_file = self._write_chunk(chunk_lines, chunk_number)
                 output_files.append(output_file)
-                logger.info("Wrote final chunk %d with %d lines to %s",
-                            chunk_number, len(chunk_lines), output_file)
+                logger.info(f"Wrote final chunk {chunk_number} with {len(chunk_lines)} lines to {output_file}")
 
-        logger.info("Protein-based file splitting complete. Generated %d chunks.", len(output_files))
+        logger.info(f"Protein-based file splitting complete. Generated {len(output_files)} chunks.")
         return output_files
 
     def _write_chunk(self, lines: List[str], chunk_number: int) -> Path:

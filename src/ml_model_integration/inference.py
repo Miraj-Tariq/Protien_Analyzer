@@ -29,7 +29,7 @@ class ESMIntegration:
         self.model, self.alphabet = self.load_model()
         self.model.to(self.device)
         self.model.eval()
-        logger.info("ESMIntegration initialized on device: %s", self.device)
+        logger.info(f"ESMIntegration initialized on device: {self.device}")
 
     def load_model(self) -> Tuple[torch.nn.Module, esm.Alphabet]:
         """
@@ -45,7 +45,7 @@ class ESMIntegration:
             logger.info("Loaded ESM-1b model successfully.")
             return model, alphabet
         except Exception as e:
-            logger.error("Failed to load ESM model: %s", e)
+            logger.error(f"Failed to load ESM model: {e}")
             raise e
 
     def preprocess_input(self, json_file: Union[str, Path]) -> Dict[str, torch.Tensor]:
@@ -60,7 +60,7 @@ class ESMIntegration:
         """
         json_file = Path(json_file)
         if not json_file.exists():
-            logger.error("Input JSON file %s does not exist.", json_file)
+            logger.error(f"Input JSON file {json_file} does not exist.")
             raise FileNotFoundError(f"Input JSON file {json_file} does not exist.")
 
         try:
@@ -91,10 +91,10 @@ class ESMIntegration:
             # Create a dict mapping chain IDs to their tokens.
             token_dict = {label: tokens for label, tokens in zip(batch_labels, batch_tokens)}
 
-            logger.info("Preprocessed input from %s into tokenized sequences.", json_file)
+            logger.info(f"Preprocessed input from {json_file} into tokenized sequences.")
             return token_dict
         except Exception as e:
-            logger.error("Error during input preprocessing: %s", e)
+            logger.error(f"Error during input preprocessing: {e}")
             raise e
 
     def run_inference(self, tokenized_inputs: Dict[str, torch.Tensor]) -> Tuple[Dict[str, torch.Tensor], float]:
@@ -121,10 +121,10 @@ class ESMIntegration:
 
             prediction_time = time.time() - start_time
 
-            logger.info("Model inference completed in %.3f seconds.", prediction_time)
+            logger.info(f"Model inference completed in {prediction_time} seconds.")
             return outputs, prediction_time
         except Exception as e:
-            logger.error("Error during model inference: %s", e)
+            logger.error(f"Error during model inference: {e}")
             raise e
 
     def post_process(
@@ -167,7 +167,7 @@ class ESMIntegration:
             "predicted_sequence": predictions
         }
 
-        logger.info("Post-processing completed. Metadata: %s", metadata)
+        logger.info(f"Post-processing completed. Metadata: {metadata}")
         return metadata
 
     def store_metadata(self, metadata: Dict[str, Any], output_dir: Union[str, Path]) -> Path:

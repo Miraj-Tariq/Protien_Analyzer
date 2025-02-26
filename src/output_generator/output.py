@@ -19,7 +19,7 @@ class OutputFileGenerator:
     def __init__(self, output_dir: Union[str, Path] = CONFIG["output_dir"]) -> None:
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        logger.info("Output directory set to: %s", self.output_dir.resolve())
+        logger.info(f"Output directory set to: {self.output_dir.resolve()}")
 
     def transform_data(self,
                        input_filename: str,

@@ -29,7 +29,7 @@ class PDBValidator:
     def __init__(self, chunk_file: str) -> None:
         self.chunk_file = Path(chunk_file)
         if not self.chunk_file.exists():
-            logger.error("Chunk file %s does not exist.", self.chunk_file)
+            logger.error(f"Chunk file {self.chunk_file} does not exist.")
             raise FileNotFoundError(f"Chunk file {self.chunk_file} does not exist.")
 
         self.structure: Optional[Any] = None
@@ -41,9 +41,9 @@ class PDBValidator:
         parser = PDBParser(QUIET=True)
         try:
             self.structure = parser.get_structure(self.chunk_file.stem, str(self.chunk_file))
-            logger.info("Successfully parsed chunk file: %s", self.chunk_file)
+            logger.info(f"Successfully parsed chunk file: {self.chunk_file}")
         except Exception as e:
-            logger.error("Error parsing chunk file: %s", e)
+            logger.error(f"Error parsing chunk file: {e}")
             raise PDBValidationError(
                 f"Failed to parse chunk file: {self.chunk_file}. Error: {str(e)}"
             )
@@ -68,7 +68,7 @@ class PDBValidator:
             try:
                 validator(self.structure)
             except PDBValidationError as e:
-                logger.error("Validation failed: %s", e.message)
+                logger.error(f"Validation failed: {e.message}")
                 raise e
 
     @staticmethod
@@ -102,7 +102,7 @@ class PDBValidator:
             raise PDBValidationError(
                 f"Missing required atom types: {', '.join(missing_atoms)}"
             )
-        logger.info("Validation passed: All required atoms (%s) are present.", ", ".join(required_atoms))
+        logger.info(f"Validation passed: All required atoms ({", ".join(required_atoms)}) are present.")
 
     @staticmethod
     def validate_column_value(structure: Any, column_index: int, expected_value: str) -> None:
@@ -120,4 +120,4 @@ class PDBValidator:
                             raise PDBValidationError(
                                 f"Validation failed: Expected '{expected_value}' in column {column_index} not found."
                             )
-        logger.info("Validation passed for column value check: %s", expected_value)
+        logger.info(f"Validation passed for column value check: {expected_value}")

@@ -26,9 +26,9 @@ def store_data(data: Any, file_path: Union[str, Path], format: str = "json", **k
         try:
             with file_path.open("w") as f:
                 json.dump(data, f, indent=4, **kwargs)
-            logger.info("Data stored as JSON at %s", file_path.resolve())
+            logger.info(f"Data stored as JSON at {file_path.resolve()}")
         except Exception as e:
-            logger.error("Error storing JSON data: %s", e)
+            logger.error(f"Error storing JSON data: {e}")
             raise e
     else:
         raise ValueError(f"Unsupported format: {format}")

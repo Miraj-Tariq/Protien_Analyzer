@@ -53,28 +53,28 @@ class PipelineOrchestrator:
 
         os.environ["file_base_name"] = self.input_file.stem
 
-        logger.info("PipelineOrchestrator initialized with config: %s", self.config)
+        logger.info(f"PipelineOrchestrator initialized with config: {self.config}")
 
     def run_pipeline(self) -> Dict[str, Any]:
         # Stage 1: File Splitting.
         chunk_files = self.split_file()
         self.checkpoints["file_splitting"] = f"{len(chunk_files)} chunks generated."
-        logger.info("File splitting completed: %s", self.checkpoints["file_splitting"])
+        logger.info(f"File splitting completed: {self.checkpoints["file_splitting"]}")
 
         # Stage 2: Extraction via Worker Pool.
         extraction_results = self.extract_chunks(chunk_files)
         self.checkpoints["extraction"] = "Extraction completed for all chunks."
-        logger.info("Extraction completed: %s", self.checkpoints["extraction"])
+        logger.info(f"Extraction completed: {self.checkpoints["extraction"]}")
 
         # Stage 3: Merge Extraction Results.
         merged_extraction = self.merge_extraction_results(extraction_results)
-        logger.info("Merged extraction results: %s", merged_extraction)
+        logger.info(f"Merged extraction results: {merged_extraction}", )
 
         # Stage 4: Mapping.
         mapper = Mapper(self.mapping_file)
         mapped_sequences = mapper.one_to_one_mapping(merged_extraction)
         self.checkpoints["mapping"] = "Mapping completed."
-        logger.info("Mapping completed: %s", mapped_sequences)
+        logger.info(f"Mapping completed: {mapped_sequences}")
 
         # Stage 5: Output File Generation.
         output_generator = OutputFileGenerator(output_dir=self.output_dir)
@@ -82,7 +82,7 @@ class PipelineOrchestrator:
             extracted_chains=mapped_sequences
         )
         self.checkpoints["output_generation"] = f"Output file generated at {output_json_path}"
-        logger.info("Output file generation completed: %s", self.checkpoints["output_generation"])
+        logger.info(f"Output file generation completed: {self.checkpoints["output_generation"]}")
 
         # Stage 6: ML Integration.
         esm_integration = ESMIntegration()
@@ -91,9 +91,9 @@ class PipelineOrchestrator:
         ml_metadata = esm_integration.post_process(output_tensors, tokenized_inputs, pred_time)
         esm_integration.store_metadata(ml_metadata, self.inference_output_dir)
         self.checkpoints["ml_integration"] = "ML integration completed."
-        logger.info("ML integration completed. Final metadata: %s", ml_metadata)
+        logger.info(f"ML integration completed. Final metadata: {ml_metadata}")
 
-        logger.info("Pipeline completed. Checkpoints: %s", self.checkpoints)
+        logger.info(f"Pipeline completed. Checkpoints: {self.checkpoints}")
         return ml_metadata
 
     def split_file(self) -> List[Path]:
@@ -131,7 +131,7 @@ class PipelineOrchestrator:
             if isinstance(result, dict):
                 successful_results.append(result)
             else:
-                logger.error("Extraction failed for %s: %s", file_name, result)
+                logger.error(f"Extraction failed for {file_name}: {result}")
 
         return successful_results
 

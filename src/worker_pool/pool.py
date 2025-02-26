@@ -18,8 +18,7 @@ class WorkerPool:
         self.max_workers = max_workers
         self.max_retries = max_retries
         self.checkpoints: Dict[str, Any] = {}
-        logger.info("WorkerPool initialized with max_workers=%d, max_retries=%d",
-                    self.max_workers, self.max_retries)
+        logger.info(f"WorkerPool initialized with max_workers={self.max_workers}, max_retries={self.max_retries}")
 
     def _build_file_name(self, base_address: str, chunk_number: int) -> str:
         """
@@ -65,12 +64,12 @@ class WorkerPool:
                     result = future.result()
                     results[file_name] = result
                     self.checkpoints[file_name] = "SUCCESS"
-                    logger.info("Successfully processed %s", file_name)
+                    logger.info(f"Successfully processed {file_name}")
                 except Exception as exc:
                     error_msg = f"FAILED: {exc}"
                     results[file_name] = error_msg
                     self.checkpoints[file_name] = error_msg
-                    logger.error("Failed to process %s: %s", file_name, exc)
+                    logger.error(f"Failed to process {file_name}: {exc}")
 
         return results
 
@@ -101,8 +100,7 @@ class WorkerPool:
                 return result
             except Exception as e:
                 retries += 1
-                logger.warning("Error processing %s (attempt %d/%d): %s",
-                               file_name, retries, self.max_retries, e)
+                logger.warning(f"Error processing {file_name} (attempt {retries}/{self.max_retries}): {e}")
                 if retries > self.max_retries:
-                    logger.error("Exceeded max retries for %s", file_name)
+                    logger.error(f"Exceeded max retries for {file_name}")
                     raise e

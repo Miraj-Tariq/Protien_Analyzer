@@ -23,7 +23,7 @@ class Mapper:
     def __init__(self, mapping_file: Union[str, Path]) -> None:
         self.mapping_file = Path(mapping_file)
         if not self.mapping_file.exists():
-            logger.error("Mapping file %s does not exist.", self.mapping_file)
+            logger.error(f"Mapping file {self.mapping_file} does not exist.")
             raise FileNotFoundError(f"Mapping file {self.mapping_file} does not exist.")
 
         self.mapping: Dict[str, str] = self._load_mapping()
@@ -38,11 +38,11 @@ class Mapper:
         try:
             with self.mapping_file.open("r") as f:
                 mapping_data = json.load(f)
-            logger.info("Loaded mapping from %s", self.mapping_file)
+            logger.info(f"Loaded mapping from {self.mapping_file}")
 
             return mapping_data
         except Exception as e:
-            logger.error("Error loading mapping file: %s", e)
+            logger.error(f"Error loading mapping file: {e}")
             raise e
 
     def one_to_one_mapping(self, sequences: Dict[str, List[str]]) -> Dict[str, List[str]]:
@@ -66,10 +66,10 @@ class Mapper:
             for code in codes:
                 one_letter = self.mapping.get(code)
                 if one_letter is None:
-                    logger.warning("Mapping for residue '%s' not found. Using default 'X'.", code)
+                    logger.warning(f"Mapping for residue '{code}' not found. Using default 'X'.")
                     one_letter = "X"
                 mapped_seq.append(one_letter)
             mapped_dict[chain] = mapped_seq
 
-        logger.info("Mapped sequences: %s", mapped_dict)
+        logger.info(f"Mapped sequences: {mapped_dict}")
         return mapped_dict
