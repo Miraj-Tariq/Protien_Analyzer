@@ -1,6 +1,7 @@
 import argparse
 import shutil
 import json
+import os
 from pathlib import Path
 
 from src.config.config import CONFIG
@@ -8,6 +9,9 @@ from src.pipeline.orchestrator import PipelineOrchestrator
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
+
+from dotenv import load_dotenv
+load_dotenv()
 
 def main():
     parser = argparse.ArgumentParser(description="Protein Analyzer Pipeline")

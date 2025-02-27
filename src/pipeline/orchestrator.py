@@ -14,6 +14,9 @@ from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # Module-level helper function (now picklable) for extracting from a chunk.
 def extract_from_chunk_helper(chunk_file_path: str, accepted_chains: List[str], deduplicate: bool) -> Dict[str, List[str]]:
     extractor = BioPDBExtractor(

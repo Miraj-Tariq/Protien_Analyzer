@@ -132,6 +132,26 @@ The pipeline is configurable via the `.env` file:
 - **`MAX_RETRIES`** – Number of retries for failed tasks.
 - **`DEDUPLICATE`** – Boolean flag to remove adjacent duplicate residues (default: `True`).
 
+## Additional Documentation
+
+For a deeper understanding of key aspects of the Protein Analyzer pipeline, please refer to the following documents:
+
+- **Enhanced Metadata**  
+  Provides detailed insights into additional metadata fields—including biological context and structural details—essential for downstream processing and reporting.  
+  See: [enhanced_metadata.md](enhanced_metadata.md)
+
+- **Performance Optimization**  
+  Outlines best practices for deploying the application in a cloud environment, leveraging Kubernetes for orchestration, and optimizing parallel execution to boost performance.  
+  See: [performance_optimization.md](performance_optimization.md)
+
+- **Pipeline Trigger via UI**  
+  Describes design considerations for a user-friendly interface to trigger pipeline executions, including RESTful API integration, asynchronous processing, and real-time monitoring.  
+  See: [pipeline_ui_trigger.md](pipeline_ui_trigger.md)
+
+- **Scalability and Data Management**  
+  Discusses storage solutions and strategies to manage concurrent file access and support large-scale protein inference, ensuring robust scalability and data integrity.  
+  See: [scalability_data_management.md](scalability_data_management.md)
+
 
 ## Project Structure
 ```
