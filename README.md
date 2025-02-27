@@ -12,6 +12,13 @@ Protein Analyzer is a Python-based data pipeline for processing protein structur
 - **Parallel Processing:** Uses multi-processing for efficient handling of large files.
 - **Dockerized Environment:** Fully dockerized for reproducible builds and easy deployment.
 
+## Interactive High-Level Workflow
+
+Below is a high-level workflow diagram illustrating the entire process, from the input PDB file to the final JSON outputs and ML inference results:
+
+![Protein Analyzer High-Level Workflow](docs/protien_analyzer_HL_workflow.png)
+
+
 ## Prerequisites
 
 - **Python 3.7+** (for local installation)
@@ -138,19 +145,19 @@ For a deeper understanding of key aspects of the Protein Analyzer pipeline, plea
 
 - **Enhanced Metadata**  
   Provides detailed insights into additional metadata fields—including biological context and structural details—essential for downstream processing and reporting.  
-  See: [enhanced_metadata.md](enhanced_metadata.md)
+  See: [enhanced_metadata.md](docs/enhanced_metadata.md)
 
 - **Performance Optimization**  
   Outlines best practices for deploying the application in a cloud environment, leveraging Kubernetes for orchestration, and optimizing parallel execution to boost performance.  
-  See: [performance_optimization.md](performance_optimization.md)
+  See: [performance_optimization.md](docs/performance_optimization.md)
 
 - **Pipeline Trigger via UI**  
   Describes design considerations for a user-friendly interface to trigger pipeline executions, including RESTful API integration, asynchronous processing, and real-time monitoring.  
-  See: [pipeline_ui_trigger.md](pipeline_ui_trigger.md)
+  See: [pipeline_ui_trigger.md](docs/pipeline_ui_trigger.md)
 
 - **Scalability and Data Management**  
   Discusses storage solutions and strategies to manage concurrent file access and support large-scale protein inference, ensuring robust scalability and data integrity.  
-  See: [scalability_data_management.md](scalability_data_management.md)
+  See: [scalability_data_management.md](docs/scalability_data_management.md)
 
 
 ## Project Structure
